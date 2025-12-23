@@ -184,6 +184,40 @@ def import_manager(session):
         return None
 
 
+def ensure_task_types(session):
+    """
+    Создание необходимых типов задач, если они отсутствуют
+    """
+    try:
+        task_types = [
+            {'name': 'development', 'display_name': 'Разработка', 'description': 'Задачи по разработке функционала'},
+            {'name': 'management', 'display_name': 'Менеджмент', 'description': 'Организационные задачи'},
+            {'name': 'research', 'display_name': 'Исследования', 'description': 'Исследовательские задачи и R&D'}
+        ]
+        
+        created_count = 0
+        for tt in task_types:
+            type_obj = session.query(TaskType).filter_by(name=tt['name']).first()
+            if not type_obj:
+                new_type = TaskType(
+                    name=tt['name'],
+                    display_name=tt['display_name'],
+                    description=tt['description']
+                )
+                session.add(new_type)
+                created_count += 1
+                logger.info(f"Создан тип задачи: {tt['name']}")
+        
+        if created_count > 0:
+            session.commit()
+            logger.info(f"Создано новых типов задач: {created_count}")
+            
+    except Exception as e:
+        logger.error(f"Ошибка при создании типов задач: {e}")
+        session.rollback()
+        raise
+
+
 def import_tasks(session):
     """
     Импорт задач с улучшенной обработкой ошибок
@@ -381,6 +415,9 @@ def main():
         
         logger.info("Импорт пользователей...")
         import_users(session)
+        
+        logger.info("Проверка типов задач...")
+        ensure_task_types(session)
         
         logger.info("Импорт задач...")
         import_tasks(session)

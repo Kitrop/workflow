@@ -90,7 +90,7 @@ pip install -r requirements.txt
 alembic upgrade head
 
 # Импорт данных
-python app/db/import_csv.py
+python -m app.db.import_csv
 
 # Запуск сервера
 uvicorn app.main:app --reload
